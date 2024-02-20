@@ -1,29 +1,29 @@
 import numpy as np
 
-def distance(string_1: str, string_2: str) -> int:
-    return _distance(string_1, string_2)
+def cydist(string_1: str, string_2: str) -> int:
+    return _distance(string_1.encode(), string_2.encode())
 
 
-cdef int _distance(str string_1, str string_2):
-    cdef int x
-    cdef int y
+cdef int _distance(const char *a, const char *b):
+    cdef int x = len(a) + 1
+    cdef int y = len(b) + 1
+    cdef int i, j
+    cdef long[:, :] d = np.zeros((x, y), dtype=np.int_)
 
-    cdef object[:, :] matrix = np.zeros((len(string_1) + 1, len(string_2) + 1), dtype=object)
+    for i in range(x):
+        d[i][0] = i
 
-    for x in range(matrix.shape[0]):
-        matrix[x, 0] = x
+    for j in range(1, y):
+        d[0][j] = j
 
-    for y in range(matrix.shape[1]):
-        matrix[0, y] = y
-
-    for x in range(1, matrix.shape[0]):
-        for y in range(1, matrix.shape[1]):
-            if string_1[x - 1] == string_2[y - 1]:
-                matrix[x, y] = matrix[x - 1, y - 1]
+    for i in range(1, x):
+        for j in range(1, y):
+            if a[i-1] == b[j-1]:
+                d[i][j] = d[i-1][j-1]
             else:
-                matrix[x, y] = min(matrix[x - 1, y - 1], matrix[x - 1, y], matrix[x, y - 1]) + 1
+                d[i][j] = min(d[i-1][j], d[i][j-1], d[i-1][j-1]) + 1
 
-    return matrix[-1, -1]
+    return d[x - 1][y - 1]
 
 
 def test():
